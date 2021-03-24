@@ -4,5 +4,17 @@
 
 #ifndef SPO_LAB_3_FILE_EXCHANGE_FILE_READER_H
 #define SPO_LAB_3_FILE_EXCHANGE_FILE_READER_H
-int run_file_reader(char* dir_path);
+
+#include <stdint.h>
+#include <openssl/md5.h>
+#include "list.h"
+
+typedef struct file_triplet {
+    char* filename;
+    uint8_t hash[MD5_DIGEST_LENGTH];
+    size_t filesize;
+} file_triplet_t;
+
+int8_t run_file_reader(char* dir_path, list_item_t** list_ret);
+void destroy_file_triplet(file_triplet_t *triplet);
 #endif //SPO_LAB_3_FILE_EXCHANGE_FILE_READER_H
