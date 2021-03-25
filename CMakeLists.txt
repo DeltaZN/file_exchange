@@ -8,5 +8,5 @@ find_package(OpenSSL REQUIRED)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(spo_lab_3_file_exchange main.c file_reader.c file_reader.h list.c list.h)
+add_executable(spo_lab_3_file_exchange main.c file_reader.c file_reader.h list.c list.h udp_listener.c udp_listener.h cmd_handler.c cmd_handler.h util.c util.h app_context.c app_context.h)
 target_link_libraries(spo_lab_3_file_exchange ${CURSES_LIBRARIES} OpenSSL::SSL)
