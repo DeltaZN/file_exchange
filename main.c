@@ -3,6 +3,7 @@
 #include "file_reader.h"
 #include "list.h"
 #include "app_context.h"
+#include "cmd_handler.h"
 
 void print_list(list_item_t *list) {
     list_item_t *item = list;
@@ -11,8 +12,8 @@ void print_list(list_item_t *list) {
         printf("file: %s\n", triplet->filename);
         printf("  size: %ld\n", triplet->filesize);
         printf("  hash: ");
-        for (size_t i = 0; i < MD5_DIGEST_LENGTH; i++) {
-            printf("%02x", triplet->hash[i]);
+        for (size_t i = 0; i < MD5_DIGEST_LENGTH * 2; i++) {
+            printf("%c", triplet->hash[i]);
         }
         printf("\n");
         item = item->next;
@@ -33,7 +34,8 @@ int main(int argc, char **argv) {
 
         app_context_t *ctx = calloc(1, sizeof(app_context_t));
         ctx->triplet_list = list;
-        print_list(list);
+        handle_command(ctx, "display main.erl");
+//        print_list(list);
         destroy_list(list, (int (*)(void *)) destroy_file_triplet);
     }
 }

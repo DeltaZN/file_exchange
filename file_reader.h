@@ -11,7 +11,7 @@
 
 typedef struct file_triplet {
     char* filename;
-    uint8_t hash[MD5_DIGEST_LENGTH];
+    char hash[MD5_DIGEST_LENGTH * 2];
     size_t filesize;
 } file_triplet_t;
 

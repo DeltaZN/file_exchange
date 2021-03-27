@@ -10,6 +10,7 @@
 #include <openssl/md5.h>
 #include "list.h"
 #include "file_reader.h"
+#include "util.h"
 
 static inline uint8_t is_special_dir(char *dir_name) {
     return 0 == strcmp(".", dir_name) || 0 == strcmp("..", dir_name);
@@ -55,7 +56,15 @@ list_item_t* populate_list(list_item_t *list, const char* dir_path, const char* 
     new_el->filesize = ftell(inFile);
     fseek(inFile, 0, SEEK_SET);
 
-    calc_hash(inFile, new_el->hash);
+    uint8_t hash[MD5_DIGEST_LENGTH] = {0};
+    calc_hash(inFile, hash);
+
+    for (int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
+        char hex_chars[2];
+        get_hex_chars(hash[i], hex_chars);
+        new_el->hash[2*i] = hex_chars[0];
+        new_el->hash[2*i + 1] = hex_chars[1];
+    }
 
     fclose (inFile);
     return push(list, new_el);
