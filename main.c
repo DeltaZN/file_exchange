@@ -7,6 +7,7 @@
 #include "cmd_handler.h"
 #include "udp_server.h"
 #include "udp_search.h"
+#include "shell_module.h"
 
 void print_list(list_item_t *list) {
     list_item_t *item = list;
@@ -26,7 +27,6 @@ void print_list(list_item_t *list) {
 int main(int argc, char **argv) {
     if (argc < 2) {
         printf("Please, specify working directory\n");
-        search_udp_servers();
         return 0;
     } else {
         list_item_t *list = calloc(1, sizeof(list_item_t));
@@ -38,13 +38,14 @@ int main(int argc, char **argv) {
 
         app_context_t *ctx = calloc(1, sizeof(app_context_t));
         ctx->triplet_list = list;
-        handle_command(ctx, "display main.erl");
 
         pthread_t *udp_server = (pthread_t *) malloc(sizeof(pthread_t));
         pthread_create(udp_server, NULL, start_udp_server, NULL);
+
+        launch_shell(ctx);
+
         pthread_join(*udp_server, NULL);
 
-//        print_list(list);
         destroy_list(list, (int (*)(void *)) destroy_file_triplet);
     }
 }

@@ -67,10 +67,10 @@ int parse(const char *cmd, char **args) {
             continue;
         }
 
-        if (isalnum(*p) || *p == '.' || *p == '/') {
+        if (isalnum(*p) || *p == '.' || *p == '/' || *p == '-' || *p == ':') {
             const char *begin = p;
 
-            while (isalnum(*p) || *p == '.' || *p == '/') p++;
+            while (isalnum(*p) || *p == '.' || *p == '/' || *p == '-' || *p == ':') p++;
             strncpy(args[count], begin, p - begin);
             count++;
             continue;

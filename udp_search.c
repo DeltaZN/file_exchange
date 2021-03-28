@@ -10,16 +10,19 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <errno.h>
 
 #include "udp_search.h"
+#include "file_reader.h"
 
 #define PORT    8080
-#define MAXLINE 2
+#define BUF_SIZE 1024
 
-void search_udp_servers() {
+void search_udp_servers(char *triplet_str) {
+
     int sockfd;
-    char buffer[MAXLINE];
-    struct sockaddr_in     servaddr;
+    char buffer[BUF_SIZE] = {0};
+    struct sockaddr_in servaddr;
 
     // Creating socket file descriptor
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
@@ -27,25 +30,32 @@ void search_udp_servers() {
         exit(EXIT_FAILURE);
     }
 
+    int broadcast = 1;
+
+    setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST,
+               &broadcast, sizeof broadcast);
+
     memset(&servaddr, 0, sizeof(servaddr));
 
     // Filling server information
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons(PORT);
-    servaddr.sin_addr.s_addr = INADDR_ANY;
+    servaddr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
 
     uint32_t n, len;
 
-    char *search = "S";
-
-    sendto(sockfd, (const char *)search, strlen(search),
-           MSG_CONFIRM, (const struct sockaddr *) &servaddr,
+    int c = sendto(sockfd, triplet_str, strlen(triplet_str),
+           0, (const struct sockaddr *) &servaddr,
            sizeof(servaddr));
-    printf("Hello message sent.\n");
 
-    n = recvfrom(sockfd, (char *)buffer, MAXLINE,
+    if (c < 0) {
+        printf("error: %d\n", errno);
+    }
+
+    n = recvfrom(sockfd, (char *)buffer, BUF_SIZE,
                  MSG_WAITALL, (struct sockaddr *) &servaddr,
                  &len);
+
     buffer[n] = '\0';
     printf("Server : %s\n", buffer);
 
