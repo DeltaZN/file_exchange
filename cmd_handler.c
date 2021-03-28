@@ -29,7 +29,11 @@ void display_cmd(list_item_t* triplet_list, const char* path) {
     }
 }
 
-/** non-zero value == terminate programm */
+void download_cmd(list_item_t* triplet_list, const char* triplet) {
+
+}
+
+/** non-zero value == terminate program */
 int8_t handle_command(app_context_t* ctx, const char* cmd) {
     int8_t ret_code = 0;
     char *args[3];
@@ -37,10 +41,11 @@ int8_t handle_command(app_context_t* ctx, const char* cmd) {
     args[1] = calloc(1, 256);
     args[2] = calloc(1, 256);
     parse(cmd, args);
+
     if (!strcmp(args[0], DISPLAY_CMD)) {
         display_cmd(ctx->triplet_list, args[1]);
     } else if (!strcmp(args[0], DOWNLOAD_CMD)) {
-        // start download
+        download_cmd(ctx->triplet_list, args[1]);
     } else if (!strcmp(args[0], EXIT_CMD)) {
         ret_code = 1;
     }
