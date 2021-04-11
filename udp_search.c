@@ -11,9 +11,13 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include "udp_search.h"
 #include "file_reader.h"
+#include "udp_server.h"
+#include "tcp_client.h"
+#include "tcp_server.h"
 
 #define PORT    8080
 #define BUF_SIZE 1024
@@ -21,7 +25,7 @@
 void search_udp_servers(char *triplet_str) {
 
     int sockfd;
-    char buffer[BUF_SIZE] = {0};
+    int8_t buffer[BUF_SIZE] = {0};
     struct sockaddr_in servaddr;
 
     // Creating socket file descriptor
@@ -57,7 +61,19 @@ void search_udp_servers(char *triplet_str) {
                  &len);
 
     buffer[n] = '\0';
-    printf("Server : %s\n", buffer);
+
+    udp_server_answer_t *answer = (udp_server_answer_t *) buffer;
+
+    if (answer->success) {
+        printf("found, port: %d\n", answer->port);
+        pthread_t *tcp_client = (pthread_t *) malloc(sizeof(pthread_t));
+        tcp_server_data_t *server_data = malloc(sizeof(tcp_server_data_t));
+        server_data->arg = *answer;
+        server_data->ctx = NULL;
+        pthread_create(tcp_client, NULL, start_tcp_client, server_data);
+    } else {
+        printf("not found :(\n");
+    }
 
     close(sockfd);
 }

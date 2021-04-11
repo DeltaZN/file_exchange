@@ -38,9 +38,10 @@ int main(int argc, char **argv) {
 
         app_context_t *ctx = calloc(1, sizeof(app_context_t));
         ctx->triplet_list = list;
+        ctx->exit = 0;
 
         pthread_t *udp_server = (pthread_t *) malloc(sizeof(pthread_t));
-        pthread_create(udp_server, NULL, start_udp_server, NULL);
+        pthread_create(udp_server, NULL, start_udp_server, ctx);
 
         launch_shell(ctx);
 

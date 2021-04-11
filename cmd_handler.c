@@ -58,6 +58,7 @@ int8_t handle_command(app_context_t* ctx, const char* cmd) {
     } else if (!strcmp(args[0], HELP_CMD)) {
         help_cmd();
     } else if (!strcmp(args[0], EXIT_CMD)) {
+        ctx->exit = 1;
         ret_code = 1;
     } else {
         printf("unknown cmd\n");
