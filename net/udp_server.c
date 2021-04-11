@@ -12,8 +12,8 @@
 #include <pthread.h>
 
 #include "udp_server.h"
-#include "app_context.h"
-#include "file_reader.h"
+#include "../app_context.h"
+#include "../file_reader.h"
 #include "tcp_server.h"
 
 #define PORT 8080

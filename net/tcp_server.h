@@ -5,7 +5,7 @@
 #ifndef SPO_LAB_3_FILE_EXCHANGE_TCP_SERVER_H
 #define SPO_LAB_3_FILE_EXCHANGE_TCP_SERVER_H
 
-#include "app_context.h"
+#include "../app_context.h"
 #include "udp_server.h"
 
 typedef struct tcp_server_request {

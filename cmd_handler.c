@@ -8,7 +8,7 @@
 #include "cmd_handler.h"
 #include "util.h"
 #include "file_reader.h"
-#include "udp_search.h"
+#include "net/udp_search.h"
 
 const static char* DISPLAY_CMD = "display";
 const static char* DOWNLOAD_CMD = "download";

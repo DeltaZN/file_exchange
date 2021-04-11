@@ -5,8 +5,8 @@
 #include "list.h"
 #include "app_context.h"
 #include "cmd_handler.h"
-#include "udp_server.h"
-#include "udp_search.h"
+#include "net/udp_server.h"
+#include "net/udp_search.h"
 #include "shell_module.h"
 
 void print_list(list_item_t *list) {

@@ -14,7 +14,7 @@
 #include <pthread.h>
 
 #include "udp_search.h"
-#include "file_reader.h"
+#include "../file_reader.h"
 #include "udp_server.h"
 #include "tcp_client.h"
 #include "tcp_server.h"
