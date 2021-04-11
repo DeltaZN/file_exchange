@@ -93,15 +93,18 @@ void *start_udp_server(void *thread_data) {
         udp_server_answer_t answer = {0};
 
         if (pTriplet) {
-            answer.success = 1;
-            answer.port = 4214;
-            answer.triplet = *pTriplet;
-
-            pthread_t *tcp_client = (pthread_t *) malloc(sizeof(pthread_t));
+            pthread_t *tcp_server = (pthread_t *) malloc(sizeof(pthread_t));
             tcp_server_data_t *server_data = malloc(sizeof(tcp_server_data_t));
-            server_data->arg = answer;
-            server_data->ctx = NULL;
-            pthread_create(tcp_client, NULL, start_tcp_server, server_data);
+            server_data->triplet = pTriplet;
+            init_tcp_server(server_data);
+
+            answer.success = 1;
+            answer.port = server_data->port;
+            answer.triplet.filesize = pTriplet->filesize;
+            strncpy(answer.triplet.hash, pTriplet->hash, 32);
+            strcpy(answer.triplet.filename, pTriplet->filename);
+
+            pthread_create(tcp_server, NULL, start_tcp_server, server_data);
         }
 
         sendto(sock_fd, &answer, sizeof(udp_server_answer_t),

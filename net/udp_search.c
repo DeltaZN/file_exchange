@@ -8,7 +8,6 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <errno.h>
 #include <pthread.h>
@@ -46,7 +45,7 @@ void search_udp_servers(char *triplet_str) {
     servaddr.sin_port = htons(PORT);
     servaddr.sin_addr.s_addr = htonl(INADDR_BROADCAST);
 
-    uint32_t n, len;
+    int32_t n, len;
 
     int c = sendto(sockfd, triplet_str, strlen(triplet_str),
            0, (const struct sockaddr *) &servaddr,
@@ -60,6 +59,10 @@ void search_udp_servers(char *triplet_str) {
                  MSG_WAITALL, (struct sockaddr *) &servaddr,
                  &len);
 
+    if (-1 == n) {
+        printf("error from udp server\n");
+    }
+
     buffer[n] = '\0';
 
     udp_server_answer_t *answer = (udp_server_answer_t *) buffer;
@@ -67,10 +70,10 @@ void search_udp_servers(char *triplet_str) {
     if (answer->success) {
         printf("found, port: %d\n", answer->port);
         pthread_t *tcp_client = (pthread_t *) malloc(sizeof(pthread_t));
-        tcp_server_data_t *server_data = malloc(sizeof(tcp_server_data_t));
-        server_data->arg = *answer;
-        server_data->ctx = NULL;
-        pthread_create(tcp_client, NULL, start_tcp_client, server_data);
+        tcp_client_data_t *cd = malloc(sizeof(tcp_client_data_t));
+        cd->port = answer->port;
+        cd->triplet = answer->triplet;
+        pthread_create(tcp_client, NULL, start_tcp_client, cd);
     } else {
         printf("not found :(\n");
     }

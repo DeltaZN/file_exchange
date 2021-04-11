@@ -9,7 +9,7 @@
 typedef struct udp_server_answer {
     int8_t success;
     uint16_t port;
-    file_triplet_t triplet;
+    file_triplet_dto_t triplet;
 } udp_server_answer_t;
 
 void *start_udp_server(void *thread_data);
