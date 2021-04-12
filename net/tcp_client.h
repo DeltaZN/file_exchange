@@ -5,6 +5,7 @@
 #ifndef SPO_LAB_3_FILE_EXCHANGE_TCP_CLIENT_H
 #define SPO_LAB_3_FILE_EXCHANGE_TCP_CLIENT_H
 #include <stdint.h>
+#include <netinet/in.h>
 #include "../file_reader.h"
 
 typedef struct tcp_server_answer {
@@ -15,6 +16,7 @@ typedef struct tcp_server_answer {
 typedef struct tcp_client_data {
     uint16_t port;
     file_triplet_dto_t triplet;
+    in_addr_t server_addr;
 } tcp_client_data_t;
 
 void *start_tcp_client(void *thread_data);

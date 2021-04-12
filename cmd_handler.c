@@ -5,6 +5,8 @@
 #include <malloc.h>
 #include <stdint.h>
 #include <string.h>
+#include <bits/pthreadtypes.h>
+#include <pthread.h>
 #include "cmd_handler.h"
 #include "util.h"
 #include "file_reader.h"
@@ -32,7 +34,10 @@ void display_cmd(list_item_t* triplet_list, const char* path) {
 }
 
 void download_cmd(char* triplet) {
-    search_udp_servers(triplet);
+    char *triplet_str = calloc(1, 512);
+    strcpy(triplet_str, triplet);
+    pthread_t *search_udp = (pthread_t *) malloc(sizeof(pthread_t));
+    pthread_create(search_udp, NULL, search_udp_servers, triplet_str);
 }
 
 void help_cmd() {

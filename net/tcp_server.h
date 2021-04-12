@@ -7,7 +7,7 @@
 #include "../app_context.h"
 #include "udp_server.h"
 #include <netinet/in.h>
-#include <sys/socket.h>;
+#include <sys/socket.h>
 
 typedef struct tcp_server_request {
     char cmd[3];

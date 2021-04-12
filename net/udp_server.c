@@ -13,7 +13,6 @@
 
 #include "udp_server.h"
 #include "../app_context.h"
-#include "../file_reader.h"
 #include "tcp_server.h"
 
 #define PORT 8080
@@ -67,15 +66,15 @@ void *start_udp_server(void *thread_data) {
     // Bind the socket with the server address
     while (bind(sock_fd, (const struct sockaddr *) &serv_addr,
                 sizeof(serv_addr)) < 0) {
-        printf("bind on port %d failed\n", port++);
+        printf("[UDP-server] bind on port %d failed\n", port++);
         serv_addr.sin_port = htons(port);
     }
 
-    printf("Successfully started server on port %d!\n", port);
+    printf("[UDP-server] Successfully started server on port %d!\n", port);
 
     uint32_t len, n;
 
-    len = sizeof(cl_addr);  //len is value/resuslt
+    len = sizeof(cl_addr);
 
     while (!ctx->exit) {
         n = recvfrom(sock_fd, (char *) buffer, BUF_SIZE,
@@ -83,10 +82,10 @@ void *start_udp_server(void *thread_data) {
                      &len);
 
         if (n > BUF_SIZE) {
-            printf("too long message\n");
+            printf("[ERROR, UDP-server]too long message\n");
         }
 
-        printf("req: %s\n", buffer);
+        printf("[UDP-server] req: %s\n", buffer);
 
         file_triplet_t *pTriplet = find_triplet(ctx->triplet_list, buffer);
 
