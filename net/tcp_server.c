@@ -13,13 +13,18 @@
 #include "tcp_server.h"
 #include "tcp_client.h"
 
-void serve_client(int sockfd, file_triplet_t *triplet) {
+void serve_client(int sockfd, file_triplet_t *triplet, app_context_t *ctx) {
     int current_file = open(triplet->filename, O_RDONLY, 00666);
     tcp_server_request_t request;
     tcp_server_answer_t answer;
+    transfer_progress_t progress = {0};
+    progress.triplet.filesize = triplet->filesize;
+    strncpy(progress.triplet.hash, triplet->hash, 32);
+    strcpy(progress.triplet.filename, triplet->filename);
+    put_upload(ctx->events_module, &progress);
     while (0 != strncmp("ext", request.cmd, 3)) {
         read(sockfd, &request, sizeof(request));
-        printf("From client: %s\n", request.cmd);
+        printf("[TCP-server] From client: %s\n", request.cmd);
         if (0 == strncmp("get", request.cmd, 3)) {
             uint16_t size = 4096;
             if (triplet->filesize < size * request.arg + 4096) {
@@ -28,8 +33,12 @@ void serve_client(int sockfd, file_triplet_t *triplet) {
             pread(current_file, answer.payload, size, 4096 * request.arg);
             answer.len = size;
             write(sockfd, &answer, sizeof(answer));
+        } else if (0 == strncmp("prg", request.cmd, 3)) {
+            progress.transferred = request.arg;
+            put_upload(ctx->events_module, &progress);
         }
     }
+    del_upload(ctx->events_module, &progress);
     close(current_file);
 }
 
@@ -73,7 +82,16 @@ void *start_tcp_server(void *thread_data) {
         exit(0);
     }
 
-    serve_client(connfd, sd->triplet);
+    char *start_upload = calloc(1, 256);
+    strcat(start_upload, "Started uploading file ");
+    strcat(start_upload, sd->triplet->filename);
+    put_action(sd->ctx->events_module, start_upload);
+    serve_client(connfd, sd->triplet, sd->ctx);
+
+    char *finished_upload = calloc(1, 256);
+    strcat(finished_upload, "Upload finished ");
+    strcat(finished_upload, sd->triplet->filename);
+    put_action(sd->ctx->events_module, finished_upload);
 
     close(sd->sockfd);
     free(sd);

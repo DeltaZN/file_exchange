@@ -8,6 +8,7 @@
 #include "net/udp_server.h"
 #include "net/udp_search.h"
 #include "shell_module.h"
+#include "events_module.h"
 
 void print_list(list_item_t *list) {
     list_item_t *item = list;
@@ -26,17 +27,20 @@ void print_list(list_item_t *list) {
 
 int main(int argc, char **argv) {
     if (argc < 2) {
-        printf("Please, specify working directory\n");
+        printf("[MAIN] Please, specify working directory\n");
         return 0;
     } else {
-        list_item_t *list = calloc(1, sizeof(list_item_t));
+        list_item_t *list;
         int8_t ret_code = run_file_reader(argv[1], &list);
         if (ret_code == -1) {
-            printf("Unable to access directory\n");
+            printf("[MAIN] Unable to access directory\n");
             return 0;
         }
 
         app_context_t *ctx = calloc(1, sizeof(app_context_t));
+        events_module_data_t *events = calloc(1, sizeof(events_module_data_t));
+        init_events_module(events);
+        ctx->events_module = events;
         ctx->triplet_list = list;
         ctx->exit = 0;
 
@@ -48,5 +52,7 @@ int main(int argc, char **argv) {
         pthread_join(*udp_server, NULL);
 
         destroy_list(list, (int (*)(void *)) destroy_file_triplet);
+        destroy_events_module(ctx->events_module);
+        free(ctx);
     }
 }

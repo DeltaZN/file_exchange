@@ -95,6 +95,7 @@ void *start_udp_server(void *thread_data) {
             pthread_t *tcp_server = (pthread_t *) malloc(sizeof(pthread_t));
             tcp_server_data_t *server_data = malloc(sizeof(tcp_server_data_t));
             server_data->triplet = pTriplet;
+            server_data->ctx = ctx;
             init_tcp_server(server_data);
 
             answer.success = 1;

@@ -21,7 +21,8 @@
 #define BUF_SIZE 1024
 
 void *search_udp_servers(void *thread_data) {
-    char *triplet_str = thread_data;
+    udp_client_data_t *udp_cd = thread_data;
+    char *triplet_str = udp_cd->triplet_str;
 
     int sockfd;
     int8_t buffer[BUF_SIZE] = {0};
@@ -71,11 +72,12 @@ void *search_udp_servers(void *thread_data) {
     if (answer->success) {
         printf("[UDP-search] found, port: %d\n", answer->port);
         pthread_t *tcp_client = (pthread_t *) malloc(sizeof(pthread_t));
-        tcp_client_data_t *cd = malloc(sizeof(tcp_client_data_t));
-        cd->port = answer->port;
-        cd->triplet = answer->triplet;
-        cd->server_addr = cl_addr.sin_addr.s_addr;
-        pthread_create(tcp_client, NULL, start_tcp_client, cd);
+        tcp_client_data_t *tcp_cd = malloc(sizeof(tcp_client_data_t));
+        tcp_cd->port = answer->port;
+        tcp_cd->triplet = answer->triplet;
+        tcp_cd->server_addr = cl_addr.sin_addr.s_addr;
+        tcp_cd->ctx = udp_cd->ctx;
+        pthread_create(tcp_client, NULL, start_tcp_client, tcp_cd);
     } else {
         printf("[UDP-search] not found :(\n");
     }

@@ -20,6 +20,7 @@ typedef struct tcp_server_data {
     struct sockaddr_in servaddr;
     struct sockaddr_in client;
     file_triplet_t *triplet;
+    app_context_t *ctx;
 } tcp_server_data_t;
 
 void init_tcp_server(tcp_server_data_t *sd);

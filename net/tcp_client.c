@@ -13,9 +13,13 @@
 #include <fcntl.h>
 
 const static char* GET_CMD = "get";
+const static char* PROGRESS_CMD = "prg";
 const static char* EXIT_CMD = "ext";
 
-void perform_download(int sockfd, file_triplet_dto_t triplet) {
+void perform_download(int sockfd, file_triplet_dto_t triplet, app_context_t *ctx) {
+    transfer_progress_t progress = {0};
+    progress.triplet = triplet;
+    put_download(ctx->events_module, &progress);
     tcp_server_request_t request = {0};
     tcp_server_answer_t answer = {0};
     int current_file = open(triplet.filename, O_WRONLY | O_CREAT, 00777);
@@ -26,9 +30,16 @@ void perform_download(int sockfd, file_triplet_dto_t triplet) {
         write(sockfd, &request, sizeof(request));
         read(sockfd, &answer, sizeof(answer));
         printf("[TCP_CLIENT] received data, len: %d\n", answer.len);
+        progress.transferred += answer.len;
+        put_download(ctx->events_module, &progress);
         pwrite(current_file, &answer.payload, answer.len, i);
         c++;
+        // send progress status to server
+        strncpy(request.cmd, PROGRESS_CMD, 3);
+        request.arg = progress.transferred;
+        write(sockfd, &request, sizeof(request));
     }
+    del_download(ctx->events_module, &progress);
     close(current_file);
     strncpy(request.cmd, EXIT_CMD, 3);
     write(sockfd, &request, sizeof(request));
@@ -54,7 +65,16 @@ void *start_tcp_client(void *thread_data) {
         printf("[ERROR, TCP_CLIENT] connection with the server failed!\n");
         exit(0);
     }
-    perform_download(sockfd, cd->triplet);
+
+    char *start_download = calloc(1, 256);
+    strcat(start_download, "Started downloading file ");
+    strcat(start_download, cd->triplet.filename);
+    put_action(cd->ctx->events_module, start_download);
+    perform_download(sockfd, cd->triplet, cd->ctx);
+    char *finish_download = calloc(1, 256);
+    strcat(finish_download, "Finished downloading file ");
+    strcat(finish_download, cd->triplet.filename);
+    put_action(cd->ctx->events_module, finish_download);
 
     close(sockfd);
     free(cd);

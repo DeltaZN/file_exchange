@@ -33,11 +33,14 @@ void display_cmd(list_item_t* triplet_list, const char* path) {
     }
 }
 
-void download_cmd(char* triplet) {
+void download_cmd(char* triplet, app_context_t *ctx) {
     char *triplet_str = calloc(1, 512);
     strcpy(triplet_str, triplet);
+    udp_client_data_t *udp_cd = malloc(sizeof(udp_client_data_t));
+    udp_cd->triplet_str = triplet_str;
+    udp_cd->ctx = ctx;
     pthread_t *search_udp = (pthread_t *) malloc(sizeof(pthread_t));
-    pthread_create(search_udp, NULL, search_udp_servers, triplet_str);
+    pthread_create(search_udp, NULL, search_udp_servers, udp_cd);
 }
 
 void help_cmd() {
@@ -59,7 +62,7 @@ int8_t handle_command(app_context_t* ctx, const char* cmd) {
     if (!strcmp(args[0], DISPLAY_CMD)) {
         display_cmd(ctx->triplet_list, args[1]);
     } else if (!strcmp(args[0], DOWNLOAD_CMD)) {
-        download_cmd(args[1]);
+        download_cmd(args[1], ctx);
     } else if (!strcmp(args[0], HELP_CMD)) {
         help_cmd();
     } else if (!strcmp(args[0], EXIT_CMD)) {

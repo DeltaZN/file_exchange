@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include "../file_reader.h"
+#include "../app_context.h"
 
 typedef struct tcp_server_answer {
     uint16_t len;
@@ -17,6 +18,7 @@ typedef struct tcp_client_data {
     uint16_t port;
     file_triplet_dto_t triplet;
     in_addr_t server_addr;
+    app_context_t *ctx;
 } tcp_client_data_t;
 
 void *start_tcp_client(void *thread_data);

@@ -10,11 +10,7 @@ typedef struct list_item {
     void *data;
 } list_item_t;
 
-typedef struct list {
-    list_item_t *head;
-    list_item_t *last;
-} list_t;
-
 list_item_t *push(list_item_t *pp, void *data);
+list_item_t *remove_el(list_item_t *pp, list_item_t *p);
 void destroy_list(list_item_t* list, int (*destroy_data)(void*));
 #endif //SPO_LAB_3_FILE_EXCHANGE_LIST_H
