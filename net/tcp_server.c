@@ -24,7 +24,7 @@ void serve_client(int sockfd, file_triplet_t *triplet, app_context_t *ctx) {
     put_upload(ctx->events_module, &progress);
     while (0 != strncmp("ext", request.cmd, 3)) {
         read(sockfd, &request, sizeof(request));
-        printf("[TCP-server] From client: %s\n", request.cmd);
+//        printf("[TCP-server] From client: %s\n", request.cmd);
         if (0 == strncmp("get", request.cmd, 3)) {
             uint16_t size = 4096;
             if (triplet->filesize < size * request.arg + 4096) {
@@ -45,7 +45,7 @@ void serve_client(int sockfd, file_triplet_t *triplet, app_context_t *ctx) {
 void init_tcp_server(tcp_server_data_t *sd) {
     sd->sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sd->sockfd == -1) {
-        printf("[ERROR, TCP-server] TCP socket creation failed...\n");
+        put_action(sd->ctx->events_module, "[ERROR, TCP-server] TCP socket creation failed...");
         return;
     }
 

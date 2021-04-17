@@ -3,11 +3,8 @@
 #include <pthread.h>
 #include "file_reader.h"
 #include "list.h"
-#include "app_context.h"
-#include "cmd_handler.h"
 #include "net/udp_server.h"
-#include "net/udp_search.h"
-#include "shell_module.h"
+#include "ui_module.h"
 #include "events_module.h"
 
 void print_list(list_item_t *list) {

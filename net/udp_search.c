@@ -62,7 +62,7 @@ void *search_udp_servers(void *thread_data) {
                  &len);
 
     if (-1 == n) {
-        printf("[ERROR, UDP-search] couldn't receive data\n");
+        put_action(udp_cd->ctx->events_module, "[ERROR, UDP-search] couldn't receive data");
     }
 
     buffer[n] = '\0';
@@ -70,7 +70,7 @@ void *search_udp_servers(void *thread_data) {
     udp_server_answer_t *answer = (udp_server_answer_t *) buffer;
 
     if (answer->success) {
-        printf("[UDP-search] found, port: %d\n", answer->port);
+//        printf("[UDP-search] found, port: %d\n", answer->port);
         pthread_t *tcp_client = (pthread_t *) malloc(sizeof(pthread_t));
         tcp_client_data_t *tcp_cd = malloc(sizeof(tcp_client_data_t));
         tcp_cd->port = answer->port;
@@ -79,7 +79,7 @@ void *search_udp_servers(void *thread_data) {
         tcp_cd->ctx = udp_cd->ctx;
         pthread_create(tcp_client, NULL, start_tcp_client, tcp_cd);
     } else {
-        printf("[UDP-search] not found :(\n");
+//        printf("[UDP-search] not found :(\n");
     }
 
     close(sockfd);

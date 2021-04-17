@@ -17,17 +17,31 @@ const static char* DOWNLOAD_CMD = "download";
 const static char* EXIT_CMD = "exit";
 const static char* HELP_CMD = "help";
 
-void display_cmd(list_item_t* triplet_list, const char* path) {
-    list_item_t *item = triplet_list;
+const static char* unknown_cmd = "unknown cmd";
+
+const static char* help_display = "display [filename]";
+const static char* help_download = "download [file triplet]";
+const static char* help_exit = "display [filename]";
+const static char* help_help = "exit [filename]";
+
+void display_cmd(app_context_t *ctx, const char* path) {
+    list_item_t *item = ctx->triplet_list;
     while (item->data != NULL) {
         file_triplet_t *triplet = ((file_triplet_t *) item->data);
         if (!strcmp(triplet->filename, path)) {
-            printf("%s:", triplet->filename);
-            printf("%ld:", triplet->filesize);
-            for (int i = 0; i < MD5_DIGEST_LENGTH * 2; ++i) {
-                printf("%c", triplet->hash[i]);
-            }
-            printf("\n");
+            char *triplet_str = calloc(1, 256);
+            char *filesize_str = calloc(1, 16);
+
+            strcat(triplet_str, triplet->filename);
+            strcat(triplet_str, ":");
+            sprintf(filesize_str, "%ld", triplet->filesize);
+            strcat(triplet_str, filesize_str);
+            strcat(triplet_str, ":");
+            strncat(triplet_str, triplet->hash, 32);
+
+            put_action(ctx->events_module, triplet_str);
+            free(triplet_str);
+            free(filesize_str);
         }
         item = item->next;
     }
@@ -43,11 +57,11 @@ void download_cmd(char* triplet, app_context_t *ctx) {
     pthread_create(search_udp, NULL, search_udp_servers, udp_cd);
 }
 
-void help_cmd() {
-    printf("display [filename]\n");
-    printf("download [file triplet]\n");
-    printf("help\n");
-    printf("exit\n");
+void help_cmd(app_context_t* ctx) {
+    put_action(ctx->events_module, help_display);
+    put_action(ctx->events_module, help_download);
+    put_action(ctx->events_module, help_exit);
+    put_action(ctx->events_module, help_help);
 }
 
 /** non-zero value == terminate program */
@@ -60,16 +74,16 @@ int8_t handle_command(app_context_t* ctx, const char* cmd) {
     parse(cmd, args);
 
     if (!strcmp(args[0], DISPLAY_CMD)) {
-        display_cmd(ctx->triplet_list, args[1]);
+        display_cmd(ctx, args[1]);
     } else if (!strcmp(args[0], DOWNLOAD_CMD)) {
         download_cmd(args[1], ctx);
     } else if (!strcmp(args[0], HELP_CMD)) {
-        help_cmd();
+        help_cmd(ctx);
     } else if (!strcmp(args[0], EXIT_CMD)) {
         ctx->exit = 1;
         ret_code = 1;
     } else {
-        printf("unknown cmd\n");
+        put_action(ctx->events_module, unknown_cmd);
     }
 
     free(args[0]);

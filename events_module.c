@@ -4,6 +4,7 @@
 
 #include <malloc.h>
 #include <string.h>
+#include <time.h>
 #include "events_module.h"
 
 list_item_t* find_transfer_progress(list_item_t* transfer_list, transfer_progress_t *tp) {
@@ -96,8 +97,20 @@ void del_upload(events_module_data_t* em, transfer_progress_t *progress) {
     }
     pthread_mutex_unlock(&em->upload_mutex);
 }
-void put_action(events_module_data_t* em, char *str) {
+
+void add_time_tag(char *str) {
+    time_t timer;
+    struct tm* tm_info;
+    timer = time(NULL);
+    tm_info = localtime(&timer);
+    strftime(str, 29, "[%Y-%m-%d %H:%M:%S] ", tm_info);
+}
+
+void put_action(events_module_data_t* em, const char *str) {
     pthread_mutex_lock(&em->actions_mutex);
-    em->actions_list = push(em->actions_list, str);
+    char *logged_str = calloc(1, 512);
+    add_time_tag(logged_str);
+    strcat(logged_str, str);
+    em->actions_list = push(em->actions_list, logged_str);
     pthread_mutex_unlock(&em->actions_mutex);
 }

@@ -29,7 +29,7 @@ void perform_download(int sockfd, file_triplet_dto_t triplet, app_context_t *ctx
         request.arg = c;
         write(sockfd, &request, sizeof(request));
         read(sockfd, &answer, sizeof(answer));
-        printf("[TCP_CLIENT] received data, len: %d\n", answer.len);
+//        printf("[TCP_CLIENT] received data, len: %d\n", answer.len);
         progress.transferred += answer.len;
         put_download(ctx->events_module, &progress);
         pwrite(current_file, &answer.payload, answer.len, i);

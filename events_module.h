@@ -31,5 +31,5 @@ void put_download(events_module_data_t* em, transfer_progress_t *progress);
 void del_download(events_module_data_t* em, transfer_progress_t *progress);
 void put_upload(events_module_data_t* em, transfer_progress_t *progress);
 void del_upload(events_module_data_t* em, transfer_progress_t *progress);
-void put_action(events_module_data_t* em, char *str);
+void put_action(events_module_data_t* em, const char *str);
 #endif //SPO_LAB_3_FILE_EXCHANGE_EVENTS_MODULE_H
