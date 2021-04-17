@@ -53,13 +53,15 @@ void destroy_events_module(events_module_data_t* em) {
 void put_download(events_module_data_t* em, transfer_progress_t *progress) {
     pthread_mutex_lock(&em->download_mutex);
     list_item_t *found = find_transfer_progress(em->download_list, progress);
+    int8_t do_clear = 0;
     if (found) {
         transfer_progress_t *data = found->data;
         data->transferred = progress->transferred;
     } else {
         em->download_list = push(em->download_list, progress);
+        do_clear = 1;
     }
-    render_transfer_area(em->ui_data, 0);
+    render_transfer_area(em->ui_data, do_clear);
     pthread_mutex_unlock(&em->download_mutex);
 }
 
@@ -80,13 +82,15 @@ void del_download(events_module_data_t* em, transfer_progress_t *progress) {
 void put_upload(events_module_data_t* em, transfer_progress_t *progress) {
     pthread_mutex_lock(&em->upload_mutex);
     list_item_t *found = find_transfer_progress(em->upload_list, progress);
+    int8_t do_clear = 0;
     if (found) {
         transfer_progress_t *data = found->data;
         data->transferred = progress->transferred;
     } else {
         em->upload_list = push(em->upload_list, progress);
+        do_clear = 1;
     }
-    render_transfer_area(em->ui_data, 0);
+    render_transfer_area(em->ui_data, do_clear);
     pthread_mutex_unlock(&em->upload_mutex);
 }
 void del_upload(events_module_data_t* em, transfer_progress_t *progress) {

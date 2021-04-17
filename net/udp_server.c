@@ -81,6 +81,7 @@ void *start_udp_server(void *thread_data) {
     len = sizeof(cl_addr);
 
     while (!ctx->exit) {
+        memset(buffer, 0, BUF_SIZE);
         n = recvfrom(sock_fd, (char *) buffer, BUF_SIZE,
                      MSG_WAITALL, (struct sockaddr *) &cl_addr,
                      &len);
@@ -89,9 +90,17 @@ void *start_udp_server(void *thread_data) {
             put_action(ctx->events_module, "[ERROR, UDP-server] too long message");
         }
 
-//        printf("[UDP-server] req: %s\n", buffer);
-
         file_triplet_t *pTriplet = find_triplet(ctx->triplet_list, buffer);
+        char *search_result = calloc(1, 256);
+        strcat(search_result, "[UDP-server] searching ");
+        strcat(search_result, buffer);
+        if (pTriplet) {
+            strcat(search_result, " found");
+        } else {
+            strcat(search_result, " not found");
+        }
+        put_action(ctx->events_module, search_result);
+        free(search_result);
 
         udp_server_answer_t answer = {0};
 

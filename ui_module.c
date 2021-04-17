@@ -4,11 +4,16 @@
 
 #include <stdint.h>
 #include <malloc.h>
-#include <ncurses.h>
 #include <string.h>
 #include <unistd.h>
 #include "ui_module.h"
 #include "cmd_handler.h"
+
+void focus_input(ui_data_t *data) {
+    int32_t x, y;
+    getyx(data->input_win, y, x);
+    wmove(data->input_win, y, x);
+}
 
 void render_transfer_area(ui_data_t *data, int8_t do_clear) {
     int rows, cols;
@@ -82,7 +87,7 @@ void render_transfer_area(ui_data_t *data, int8_t do_clear) {
         }
     }
     wrefresh(data->transfer_win);
-    wmove(data->input_win, 0, 2);
+    focus_input(data);
 }
 
 void render_events_log(ui_data_t *data, int8_t do_clear) {
@@ -108,14 +113,14 @@ void render_events_log(ui_data_t *data, int8_t do_clear) {
         }
     }
     wrefresh(data->events_win);
-    wmove(data->input_win, 0, 2);
+    focus_input(data);
 }
 
 void render_input_field(ui_data_t *data) {
     wclear(data->input_win);
     wprintw(data->input_win, "> ");
     wrefresh(data->input_win);
-    wmove(data->input_win, 0, 2);
+    focus_input(data);
 }
 
 void init_ui_data(ui_data_t *data) {
@@ -160,5 +165,6 @@ void launch_shell(ui_data_t *ui_data) {
         exit = handle_command(ui_data->ctx, str);
         free(str);
     }
+    destroy_ui_data(ui_data);
     endwin();
 }
