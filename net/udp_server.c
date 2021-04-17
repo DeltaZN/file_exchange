@@ -91,20 +91,10 @@ void *start_udp_server(void *thread_data) {
         }
 
         file_triplet_t *pTriplet = find_triplet(ctx->triplet_list, buffer);
-        char *search_result = calloc(1, 256);
-        strcat(search_result, "[UDP-server] searching ");
-        strcat(search_result, buffer);
-        if (pTriplet) {
-            strcat(search_result, " found");
-        } else {
-            strcat(search_result, " not found");
-        }
-        put_action(ctx->events_module, search_result);
-        free(search_result);
-
-        udp_server_answer_t answer = {0};
 
         if (pTriplet) {
+            udp_server_answer_t answer = {0};
+
             pthread_t *tcp_server = (pthread_t *) malloc(sizeof(pthread_t));
             tcp_server_data_t *server_data = malloc(sizeof(tcp_server_data_t));
             server_data->triplet = pTriplet;
@@ -118,11 +108,11 @@ void *start_udp_server(void *thread_data) {
             strcpy(answer.triplet.filename, pTriplet->filename);
 
             pthread_create(tcp_server, NULL, start_tcp_server, server_data);
-        }
 
-        sendto(sock_fd, &answer, sizeof(udp_server_answer_t),
-               MSG_CONFIRM, (const struct sockaddr *) &cl_addr,
-               len);
+            sendto(sock_fd, &answer, sizeof(udp_server_answer_t),
+                   MSG_CONFIRM, (const struct sockaddr *) &cl_addr,
+                   len);
+        }
     }
 
     return NULL;

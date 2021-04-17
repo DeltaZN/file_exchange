@@ -13,7 +13,6 @@
 #include <pthread.h>
 
 #include "udp_search.h"
-#include "../file_reader.h"
 #include "udp_server.h"
 #include "tcp_client.h"
 
@@ -28,12 +27,21 @@ void *search_udp_servers(void *thread_data) {
     int8_t buffer[BUF_SIZE] = {0};
     struct sockaddr_in servaddr, cl_addr;
 
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("[ERROR, UDP-search] socket creation failed");
         exit(EXIT_FAILURE);
     }
 
     int broadcast = 1;
+
+    struct timeval tv;
+    tv.tv_sec = 1;
+    tv.tv_usec = 0;
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
+        perror("Error");
+        exit(-1);
+    }
 
     setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST,
                &broadcast, sizeof broadcast);
@@ -50,36 +58,41 @@ void *search_udp_servers(void *thread_data) {
     len = sizeof(cl_addr);
 
     size_t c = sendto(sockfd, triplet_str, strlen(triplet_str),
-           0, (const struct sockaddr *) &servaddr,
-           sizeof(servaddr));
-
+                      0, (const struct sockaddr *) &servaddr,
+                      sizeof(servaddr));
     if (c < 0) {
         printf("[ERROR, UDP-search]: %d\n", errno);
     }
 
-    n = recvfrom(sockfd, (char *)buffer, BUF_SIZE,
-                 MSG_WAITALL, (struct sockaddr *) &cl_addr,
-                 &len);
+    int8_t received_smth = 0;
 
-    if (-1 == n) {
-        put_action(udp_cd->ctx->events_module, "[ERROR, UDP-search] couldn't receive data");
-    }
+    while (1) {
+        n = recvfrom(sockfd, (char *) buffer, BUF_SIZE,
+                     MSG_WAITALL, (struct sockaddr *) &cl_addr,
+                     &len);
 
-    buffer[n] = '\0';
+        if (-1 == n) {
+            if (received_smth) {
+                return NULL;
+            }
+            put_action(udp_cd->ctx->events_module, "[UDP-search] file not found");
+            break;
+        }
+        received_smth = 1;
 
-    udp_server_answer_t *answer = (udp_server_answer_t *) buffer;
+        buffer[n] = '\0';
 
-    if (answer->success) {
-        put_action(udp_cd->ctx->events_module, "[UDP-search] file found :)");
-        pthread_t *tcp_client = (pthread_t *) malloc(sizeof(pthread_t));
-        tcp_client_data_t *tcp_cd = malloc(sizeof(tcp_client_data_t));
-        tcp_cd->port = answer->port;
-        tcp_cd->triplet = answer->triplet;
-        tcp_cd->server_addr = cl_addr.sin_addr.s_addr;
-        tcp_cd->ctx = udp_cd->ctx;
-        pthread_create(tcp_client, NULL, start_tcp_client, tcp_cd);
-    } else {
-        put_action(udp_cd->ctx->events_module, "[UDP-search] file not found :(");
+        udp_server_answer_t *answer = (udp_server_answer_t *) buffer;
+
+        if (answer->success) {
+            pthread_t *tcp_client = (pthread_t *) malloc(sizeof(pthread_t));
+            tcp_client_data_t *tcp_cd = malloc(sizeof(tcp_client_data_t));
+            tcp_cd->port = answer->port;
+            tcp_cd->triplet = answer->triplet;
+            tcp_cd->server_addr = cl_addr.sin_addr.s_addr;
+            tcp_cd->ctx = udp_cd->ctx;
+            pthread_create(tcp_client, NULL, start_tcp_client, tcp_cd);
+        }
     }
 
     close(sockfd);
