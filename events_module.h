@@ -22,6 +22,7 @@ typedef struct events_module_data {
     list_item_t *upload_list;
     list_item_t *download_list;
     list_item_t *actions_list;
+    void *ui_data; // a little hack
 } events_module_data_t;
 
 void init_events_module(events_module_data_t* em);

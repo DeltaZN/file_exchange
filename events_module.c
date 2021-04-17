@@ -6,6 +6,8 @@
 #include <string.h>
 #include <time.h>
 #include "events_module.h"
+#include "ui_module.h"
+
 
 list_item_t* find_transfer_progress(list_item_t* transfer_list, transfer_progress_t *tp) {
     list_item_t *item = transfer_list;
@@ -57,6 +59,7 @@ void put_download(events_module_data_t* em, transfer_progress_t *progress) {
     } else {
         em->download_list = push(em->download_list, progress);
     }
+    render_transfer_area(em->ui_data, 0);
     pthread_mutex_unlock(&em->download_mutex);
 }
 
@@ -71,6 +74,7 @@ void del_download(events_module_data_t* em, transfer_progress_t *progress) {
     } else {
         printf("[EVENTS-MODULE] ERROR on del download");
     }
+    render_transfer_area(em->ui_data, 1);
     pthread_mutex_unlock(&em->download_mutex);
 }
 void put_upload(events_module_data_t* em, transfer_progress_t *progress) {
@@ -82,6 +86,7 @@ void put_upload(events_module_data_t* em, transfer_progress_t *progress) {
     } else {
         em->upload_list = push(em->upload_list, progress);
     }
+    render_transfer_area(em->ui_data, 0);
     pthread_mutex_unlock(&em->upload_mutex);
 }
 void del_upload(events_module_data_t* em, transfer_progress_t *progress) {
@@ -95,6 +100,7 @@ void del_upload(events_module_data_t* em, transfer_progress_t *progress) {
     } else {
         printf("[EVENTS-MODULE] ERROR on del upload");
     }
+    render_transfer_area(em->ui_data, 1);
     pthread_mutex_unlock(&em->upload_mutex);
 }
 
@@ -112,5 +118,6 @@ void put_action(events_module_data_t* em, const char *str) {
     add_time_tag(logged_str);
     strcat(logged_str, str);
     em->actions_list = push(em->actions_list, logged_str);
+    render_events_log(em->ui_data, 1);
     pthread_mutex_unlock(&em->actions_mutex);
 }

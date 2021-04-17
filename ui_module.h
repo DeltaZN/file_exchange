@@ -6,6 +6,19 @@
 #define SPO_LAB_3_FILE_EXCHANGE_UI_MODULE_H
 
 #include "app_context.h"
-void render_screen(app_context_t *ctx, int8_t render_input);
-void launch_shell(app_context_t *ctx);
+#include <curses.h>
+
+typedef struct ui_data {
+    WINDOW *transfer_win;
+    WINDOW *events_win;
+    WINDOW *input_win;
+    app_context_t *ctx;
+} ui_data_t;
+
+void render_transfer_area(ui_data_t *data, int8_t do_clear);
+void render_events_log(ui_data_t *data, int8_t do_clear);
+void init_ui_data(ui_data_t *data);
+void destroy_ui_data(ui_data_t *data);
+void render_screen(ui_data_t *ui_data);
+void launch_shell(ui_data_t *ui_data);
 #endif //SPO_LAB_3_FILE_EXCHANGE_UI_MODULE_H
