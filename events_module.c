@@ -11,7 +11,7 @@
 
 list_item_t* find_transfer_progress(list_item_t* transfer_list, transfer_progress_t *tp) {
     list_item_t *item = transfer_list;
-    while (item != NULL) {
+    while (item != NULL && tp != NULL) {
         transfer_progress_t *item_data = item->data;
         if (item_data &&
             0 == strcmp(item_data->triplet.filename, tp->triplet.filename) &&
@@ -30,6 +30,20 @@ void destroy_transfer_progress(transfer_progress_t *tp) {
 
 void destroy_action_message(char *str) {
     free(str);
+}
+
+list_item_t* find_download(events_module_data_t* em, transfer_progress_t *tp) {
+    pthread_mutex_lock(&em->download_mutex);
+    list_item_t *item = find_transfer_progress(em->download_list, tp);
+    pthread_mutex_unlock(&em->download_mutex);
+    return item;
+}
+
+list_item_t* find_upload(events_module_data_t* em, transfer_progress_t *tp) {
+    pthread_mutex_lock(&em->upload_mutex);
+    list_item_t *item = find_transfer_progress(em->upload_list, tp);
+    pthread_mutex_unlock(&em->upload_mutex);
+    return item;
 }
 
 void init_events_module(events_module_data_t* em) {
@@ -74,7 +88,7 @@ void del_download(events_module_data_t* em, transfer_progress_t *progress) {
             printf("[EVENTS-MODULE] ERROR on del download");
         }
     } else {
-        printf("[EVENTS-MODULE] ERROR on del download");
+        // Apparently, deleted by other thread
     }
     render_transfer_area(em->ui_data, 1);
     pthread_mutex_unlock(&em->download_mutex);
@@ -102,7 +116,7 @@ void del_upload(events_module_data_t* em, transfer_progress_t *progress) {
             printf("[EVENTS-MODULE] ERROR on del upload");
         }
     } else {
-        printf("[EVENTS-MODULE] ERROR on del upload");
+        // Apparently, deleted by other thread
     }
     render_transfer_area(em->ui_data, 1);
     pthread_mutex_unlock(&em->upload_mutex);

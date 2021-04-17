@@ -13,6 +13,7 @@
 typedef struct transfer_progress {
     size_t transferred;
     file_triplet_dto_t triplet;
+    _Atomic size_t global;
 } transfer_progress_t;
 
 typedef struct events_module_data {
@@ -28,6 +29,8 @@ typedef struct events_module_data {
 void init_events_module(events_module_data_t* em);
 void destroy_events_module(events_module_data_t* em);
 
+list_item_t* find_download(events_module_data_t* em, transfer_progress_t *tp);
+list_item_t* find_upload(events_module_data_t* em, transfer_progress_t *tp);
 void put_download(events_module_data_t* em, transfer_progress_t *progress);
 void del_download(events_module_data_t* em, transfer_progress_t *progress);
 void put_upload(events_module_data_t* em, transfer_progress_t *progress);

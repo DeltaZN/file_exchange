@@ -18,27 +18,34 @@ const static char* EXIT_CMD = "ext";
 
 void perform_download(int sockfd, file_triplet_dto_t triplet, app_context_t *ctx) {
     transfer_progress_t progress = {0};
+    transfer_progress_t *cur_progress = &progress;
     progress.triplet = triplet;
-    put_download(ctx->events_module, &progress);
+    list_item_t *existing_download = find_download(ctx->events_module, &progress);
+    if (existing_download) {
+        cur_progress = existing_download->data;
+    } else {
+        put_download(ctx->events_module, &progress);
+    }
     tcp_server_request_t request = {0};
     tcp_server_answer_t answer = {0};
     int current_file = open(triplet.filename, O_WRONLY | O_CREAT, 00777);
-    int32_t c = 0;
-    for (size_t i = 0; i < triplet.filesize; i += 4096) {
+    while (cur_progress->global * 4096 < triplet.filesize) {
         strncpy(request.cmd, GET_CMD, 3);
-        request.arg = c;
+        request.arg = cur_progress->global++;
+        if (request.arg * 4096 > triplet.filesize) {
+            break;
+        }
         write(sockfd, &request, sizeof(request));
         read(sockfd, &answer, sizeof(answer));
-        progress.transferred += answer.len;
-        put_download(ctx->events_module, &progress);
-        pwrite(current_file, &answer.payload, answer.len, i);
-        c++;
+        cur_progress->transferred += answer.len;
+        put_download(ctx->events_module, cur_progress);
+        pwrite(current_file, &answer.payload, answer.len, request.arg * 4096);
         // send progress status to the server
         strncpy(request.cmd, PROGRESS_CMD, 3);
-        request.arg = progress.transferred;
+        request.arg = cur_progress->transferred;
         write(sockfd, &request, sizeof(request));
     }
-    del_download(ctx->events_module, &progress);
+    del_download(ctx->events_module, cur_progress);
     close(current_file);
     strncpy(request.cmd, EXIT_CMD, 3);
     write(sockfd, &request, sizeof(request));

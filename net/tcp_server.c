@@ -18,10 +18,16 @@ void serve_client(int sockfd, file_triplet_t *triplet, app_context_t *ctx) {
     tcp_server_request_t request;
     tcp_server_answer_t answer;
     transfer_progress_t progress = {0};
-    progress.triplet.filesize = triplet->filesize;
-    strncpy(progress.triplet.hash, triplet->hash, 32);
-    strcpy(progress.triplet.filename, triplet->filename);
-    put_upload(ctx->events_module, &progress);
+    transfer_progress_t *cur_progress = &progress;
+    list_item_t *existing_upload = find_upload(ctx->events_module, cur_progress);
+    if (existing_upload) {
+        cur_progress = existing_upload->data;
+    } else {
+        progress.triplet.filesize = triplet->filesize;
+        strncpy(progress.triplet.hash, triplet->hash, 32);
+        strcpy(progress.triplet.filename, triplet->filename);
+        put_upload(ctx->events_module, &progress);
+    }
     while (0 != strncmp("ext", request.cmd, 3)) {
         read(sockfd, &request, sizeof(request));
         if (0 == strncmp("get", request.cmd, 3)) {
@@ -33,11 +39,11 @@ void serve_client(int sockfd, file_triplet_t *triplet, app_context_t *ctx) {
             answer.len = size;
             write(sockfd, &answer, sizeof(answer));
         } else if (0 == strncmp("prg", request.cmd, 3)) {
-            progress.transferred = request.arg;
-            put_upload(ctx->events_module, &progress);
+            cur_progress->transferred = request.arg;
+            put_upload(ctx->events_module, cur_progress);
         }
     }
-    del_upload(ctx->events_module, &progress);
+    del_upload(ctx->events_module, cur_progress);
     close(current_file);
 }
 
