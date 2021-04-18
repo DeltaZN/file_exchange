@@ -13,6 +13,7 @@ typedef struct file_triplet {
     char* filename;
     char hash[MD5_DIGEST_LENGTH * 2];
     size_t filesize;
+    char* filepath;
 } file_triplet_t;
 
 typedef struct file_triplet_dto {

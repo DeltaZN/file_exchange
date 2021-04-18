@@ -26,6 +26,7 @@ static inline uint8_t is_subdir(struct dirent *entry) {
 
 void destroy_file_triplet(file_triplet_t *triplet) {
     free(triplet->filename);
+    free(triplet->filepath);
     free(triplet);
 }
 
@@ -39,18 +40,24 @@ void calc_hash(FILE *inFile, uint8_t *hash) {
     MD5_Final(hash ,&mdContext);
 }
 
-list_item_t* populate_list(list_item_t *list, const char* dir_path, const char* file_name) {
+list_item_t* populate_list(list_item_t *list, const char* dir_path, const char* file_name, const char* name_with_path) {
     char filename[512] = {0};
+    char relative_path[512] = {0};
     strcpy(filename, dir_path);
     strcat(filename, "/");
     strcat(filename, file_name);
+
+    strcat(relative_path, name_with_path);
+    strcat(relative_path, file_name);
 
     file_triplet_t *new_el = calloc(1, sizeof(file_triplet_t));
 
     FILE *inFile = fopen(filename, "rb");
 
     new_el->filename = calloc(1, 256);
+    new_el->filepath = calloc(1, 512);
     strcpy(new_el->filename, file_name);
+    strcpy(new_el->filepath, relative_path);
 
     fseek(inFile, 0, SEEK_END);
     new_el->filesize = ftell(inFile);
@@ -70,11 +77,17 @@ list_item_t* populate_list(list_item_t *list, const char* dir_path, const char* 
     return push(list, new_el);
 }
 
-void visit_dir(list_item_t **list, char *dir_path, char *dir_name) {
+void visit_dir(list_item_t **list, char *dir_path, char *dir_name, char *relative_path) {
+    char full_relative_path[512] = {0};
     char full_path[512] = {0};
     strcpy(full_path, dir_path);
     strcat(full_path, "/");
     strcat(full_path, dir_name);
+
+    strcat(full_relative_path, relative_path);
+    strcat(full_relative_path, dir_name);
+    strcat(full_relative_path, "/");
+
     DIR *dir = opendir(full_path);
     if (dir == 0x0) {
         printf("That shouldn't happen\n");
@@ -83,10 +96,10 @@ void visit_dir(list_item_t **list, char *dir_path, char *dir_name) {
     struct dirent *entry;
     while ((entry = readdir(dir))) {
         if (is_file(entry)) {
-            *list = populate_list(*list, full_path, entry->d_name);
+            *list = populate_list(*list, full_path, entry->d_name, full_relative_path);
         }
         if (is_subdir(entry)) {
-            visit_dir(list, full_path, entry->d_name);
+            visit_dir(list, full_path, entry->d_name, full_relative_path);
         }
     }
     closedir(dir);
@@ -101,10 +114,10 @@ int8_t run_file_reader(char* dir_path, list_item_t** list_ret) {
     struct dirent *entry;
     while ((entry = readdir(dir))) {
         if (is_file(entry)) {
-            list = populate_list(list, dir_path, entry->d_name);
+            list = populate_list(list, dir_path, entry->d_name, "");
         }
         if (is_subdir(entry)) {
-            visit_dir(&list, dir_path, entry->d_name);
+            visit_dir(&list, dir_path, entry->d_name, "");
         }
     }
     closedir(dir);

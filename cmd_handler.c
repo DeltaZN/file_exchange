@@ -28,7 +28,7 @@ void display_cmd(app_context_t *ctx, const char* path) {
     list_item_t *item = ctx->triplet_list;
     while (item->data != NULL) {
         file_triplet_t *triplet = ((file_triplet_t *) item->data);
-        if (!strcmp(triplet->filename, path)) {
+        if (!strcmp(triplet->filepath, path)) {
             char *triplet_str = calloc(1, 256);
             char *filesize_str = calloc(1, 16);
 
