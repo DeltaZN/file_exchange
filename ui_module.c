@@ -15,23 +15,19 @@ void focus_input(ui_data_t *data) {
     wmove(data->input_win, y, x);
 }
 
-void render_transfer_area(ui_data_t *data, int8_t do_clear) {
+void render_transfer_headers(ui_data_t *data) {
+    mvprintw(0, 1, "Downloading");
+    mvprintw(0, COLS / 2 + 2, "Uploading");
+    refresh();
+}
+
+void render_download_window(ui_data_t *data, int8_t do_clear) {
     int rows, cols;
-    getmaxyx(data->transfer_win, rows, cols);
+    getmaxyx(data->download_win, rows, cols);
     if (do_clear) {
-        wclear(data->transfer_win);
-        box(data->transfer_win, 0, 0);
-
-        wmove(data->transfer_win, 0, 0);
-        wprintw(data->transfer_win, "Downloading");
-        wmove(data->transfer_win, 0, cols / 2);
-        wprintw(data->transfer_win, "Uploading");
-        for (int32_t i = 0; i < rows; i++) {
-            wmove(data->transfer_win, i, cols / 2 - 1);
-            wprintw(data->transfer_win, "|");
-        }
+        wclear(data->download_win);
+        box(data->download_win, 0, 0);
     }
-
     int32_t available_rows = cols - 2;
     int32_t transfer_start = 1;
     for (int32_t i = 0; i < available_rows; i++) {
@@ -40,53 +36,70 @@ void render_transfer_area(ui_data_t *data, int8_t do_clear) {
             transfer_progress_t *progress = action->data;
             size_t name_len = strlen(progress->triplet.filename);
 
-            wmove(data->transfer_win, transfer_start + i, 1);
-            wprintw(data->transfer_win, progress->triplet.filename);
-            wmove(data->transfer_win, transfer_start + i, name_len + 2);
+            wmove(data->download_win, transfer_start + i, 1);
+            wprintw(data->download_win, progress->triplet.filename);
+            wmove(data->download_win, transfer_start + i, name_len + 2);
             float transferred = progress->transferred / 1024.0 / 1024.0;
             float all = progress->triplet.filesize / 1024.0 / 1024.0;
-            wprintw(data->transfer_win, "%f/%fMB|[", transferred, all);
+            wprintw(data->download_win, "%f/%fMB|[", transferred, all);
             float percent = transferred / all;
             int32_t xs = percent * 10;
             int32_t dots = 10 - xs;
             for (int j = 0; j < xs; ++j) {
-                wprintw(data->transfer_win, "x");
+                wprintw(data->download_win, "x");
             }
             for (int j = 0; j < dots; ++j) {
-                wprintw(data->transfer_win, ".");
+                wprintw(data->download_win, ".");
             }
-            wprintw(data->transfer_win, "]");
+            wprintw(data->download_win, "]");
         } else {
             break;
         }
     }
+    wrefresh(data->download_win);
+}
+
+void render_upload_window(ui_data_t *data, int8_t do_clear) {
+    int rows, cols;
+    getmaxyx(data->upload_win, rows, cols);
+    if (do_clear) {
+        wclear(data->upload_win);
+        box(data->upload_win, 0, 0);
+    }
+    int32_t available_rows = cols - 2;
+    int32_t transfer_start = 1;
     for (int32_t i = 0; i < available_rows; i++) {
         list_item_t *action = get(data->ctx->events_module->upload_list, i);
         if (action) {
             transfer_progress_t *progress = action->data;
             size_t name_len = strlen(progress->triplet.filename);
 
-            wmove(data->transfer_win, transfer_start + i, cols / 2 + 2);
-            wprintw(data->transfer_win, progress->triplet.filename);
-            wmove(data->transfer_win, transfer_start + i, cols / 2 + 2 + name_len + 1);
+            wmove(data->upload_win, transfer_start + i, 1);
+            wprintw(data->upload_win, progress->triplet.filename);
+            wmove(data->upload_win, transfer_start + i, name_len + 2);
             float transferred = progress->transferred / 1024.0 / 1024.0;
             float all = progress->triplet.filesize / 1024.0 / 1024.0;
-            wprintw(data->transfer_win, "%f/%fMB|[", transferred, all);
+            wprintw(data->upload_win, "%f/%fMB|[", transferred, all);
             float percent = transferred / all;
             int32_t xs = percent * 10;
             int32_t dots = 10 - xs;
             for (int j = 0; j < xs; ++j) {
-                wprintw(data->transfer_win, "x");
+                wprintw(data->upload_win, "x");
             }
             for (int j = 0; j < dots; ++j) {
-                wprintw(data->transfer_win, ".");
+                wprintw(data->upload_win, ".");
             }
-            wprintw(data->transfer_win, "]");
+            wprintw(data->upload_win, "]");
         } else {
             break;
         }
     }
-    wrefresh(data->transfer_win);
+    wrefresh(data->upload_win);
+}
+
+void render_transfer_area(ui_data_t *data, int8_t do_clear) {
+    render_download_window(data, do_clear);
+    render_upload_window(data, do_clear);
     focus_input(data);
 }
 
@@ -130,19 +143,21 @@ void init_ui_data(ui_data_t *data) {
 
     int32_t row, col;
     getmaxyx(stdscr, row, col);
-    int32_t transfer_area_start = 0;
+    int32_t transfer_area_start = 1;
     int32_t transfer_area_end = row / 2 - 1;
     int32_t events_log_start = row / 2 - 1;
     int32_t events_log_end = row - 1;
     int32_t input_start = row - 1;
 
-    data->transfer_win = newwin(transfer_area_end - transfer_area_start, COLS, transfer_area_start, 0);
-    data->events_win = newwin(events_log_end - events_log_start, COLS, events_log_start, 0);
-    data->input_win = newwin(1, COLS, input_start, 0);
+    data->download_win = newwin(transfer_area_end - transfer_area_start, col / 2, transfer_area_start, 0);
+    data->upload_win = newwin(transfer_area_end - transfer_area_start, col / 2, transfer_area_start, col / 2 + 1);
+    data->events_win = newwin(events_log_end - events_log_start, col, events_log_start, 0);
+    data->input_win = newwin(1, col, input_start, 0);
 }
 
 void destroy_ui_data(ui_data_t *data) {
-    delwin(data->transfer_win);
+    delwin(data->download_win);
+    delwin(data->upload_win);
     delwin(data->events_win);
     delwin(data->input_win);
 }
@@ -152,7 +167,8 @@ void render_screen(ui_data_t *ui_data) {
     render_input_field(ui_data);
 }
 
-void launch_shell(ui_data_t *ui_data) {
+void start_ui(ui_data_t *ui_data) {
+    render_transfer_headers(ui_data);
     render_transfer_area(ui_data, 1);
     render_events_log(ui_data, 1);
     render_input_field(ui_data);

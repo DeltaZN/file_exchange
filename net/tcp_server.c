@@ -50,7 +50,7 @@ void serve_client(int sockfd, file_triplet_t *triplet, app_context_t *ctx) {
 void init_tcp_server(tcp_server_data_t *sd) {
     sd->sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sd->sockfd == -1) {
-        put_action(sd->ctx->events_module, "[ERROR, TCP-server] TCP socket creation failed...");
+        log_error(sd->ctx->events_module, "[ERROR, TCP-server] TCP socket creation failed (%d)");
         return;
     }
 
@@ -76,27 +76,20 @@ void *start_tcp_server(void *thread_data) {
     int32_t connfd, len;
 
     if ((listen(sd->sockfd, 5)) != 0) {
-        printf("[ERROR, TCP-server] Listen failed...\n");
-        exit(0);
+        log_error(sd->ctx->events_module, "[ERROR, TCP-server] Listen failed (%d)");
+        return NULL;
     }
     len = sizeof(sd->client);
 
     connfd = accept(sd->sockfd, (struct sockaddr *) &sd->client, &len);
     if (connfd < 0) {
-        printf("[ERROR, TCP-server] server accept failed...\n");
-        exit(0);
+        log_error(sd->ctx->events_module, "[ERROR, TCP-server] Server accept failed (%d)");
+        return NULL;
     }
 
-    char *start_upload = calloc(1, 256);
-    strcat(start_upload, "Started uploading file ");
-    strcat(start_upload, sd->triplet->filename);
-    put_action(sd->ctx->events_module, start_upload);
+    log_action(sd->ctx->events_module, "Started uploading file %s", sd->triplet->filename);
     serve_client(connfd, sd->triplet, sd->ctx);
-
-    char *finished_upload = calloc(1, 256);
-    strcat(finished_upload, "Upload finished ");
-    strcat(finished_upload, sd->triplet->filename);
-    put_action(sd->ctx->events_module, finished_upload);
+    log_action(sd->ctx->events_module, "Upload finished file %s", sd->triplet->filename);
 
     close(sd->sockfd);
     free(sd);

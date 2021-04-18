@@ -31,11 +31,6 @@ void get_hex_chars(uint8_t byte, char *hex) {
     }
 }
 
-int error(const char *msg) {
-    printf("Error: %s\n", msg);
-    return -1;
-}
-
 int parse(const char *cmd, char **args) {
     const char *p = cmd;
     int count = 0;
@@ -52,7 +47,7 @@ int parse(const char *cmd, char **args) {
             const char *begin = p;
 
             while (*p && *p != quote) p++;
-            if (*p == '\0') return error("Unmachted quote");
+            if (*p == '\0') return -1;
             strncpy(args[count], begin, p - begin);
             count++;
             p++;
@@ -76,7 +71,7 @@ int parse(const char *cmd, char **args) {
             continue;
         }
 
-        return error("Illegal character");
+        return -1;
     }
 
     return count;

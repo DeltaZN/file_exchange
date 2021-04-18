@@ -58,8 +58,8 @@ void *start_tcp_client(void *thread_data) {
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
-        printf("[ERROR, TCP_CLIENT] socket creation failed!\n");
-        exit(0);
+        log_error(cd->ctx->events_module, "[ERROR, TCP_CLIENT] socket creation failed (%d)");
+        return NULL;
     }
     bzero(&servaddr, sizeof(servaddr));
 
@@ -68,19 +68,13 @@ void *start_tcp_client(void *thread_data) {
     servaddr.sin_port = htons(cd->port);
 
     if (connect(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) != 0) {
-        printf("[ERROR, TCP_CLIENT] connection with the server failed!\n");
-        exit(0);
+        log_error(cd->ctx->events_module, "[ERROR, TCP_CLIENT] connection with the server failed (%d)");
+        return NULL;
     }
 
-    char *start_download = calloc(1, 256);
-    strcat(start_download, "Started downloading file ");
-    strcat(start_download, cd->triplet.filename);
-    put_action(cd->ctx->events_module, start_download);
+    log_action(cd->ctx->events_module, "Started downloading file %s", cd->triplet.filename);
     perform_download(sockfd, cd->triplet, cd->ctx);
-    char *finish_download = calloc(1, 256);
-    strcat(finish_download, "Finished downloading file ");
-    strcat(finish_download, cd->triplet.filename);
-    put_action(cd->ctx->events_module, finish_download);
+    log_action(cd->ctx->events_module, "Finished downloading file %s", cd->triplet.filename);;
 
     close(sockfd);
     free(cd);

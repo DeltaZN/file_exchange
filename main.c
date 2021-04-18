@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
         pthread_t *udp_server = (pthread_t *) malloc(sizeof(pthread_t));
         pthread_create(udp_server, NULL, start_udp_server, ctx);
 
-        launch_shell(ui_data);
+        start_ui(ui_data);
 
         pthread_join(*udp_server, NULL);
 

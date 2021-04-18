@@ -90,7 +90,6 @@ void visit_dir(list_item_t **list, char *dir_path, char *dir_name, char *relativ
 
     DIR *dir = opendir(full_path);
     if (dir == 0x0) {
-        printf("That shouldn't happen\n");
         return;
     }
     struct dirent *entry;

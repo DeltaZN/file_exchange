@@ -28,8 +28,8 @@ void *search_udp_servers(void *thread_data) {
     struct sockaddr_in servaddr, cl_addr;
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("[ERROR, UDP-search] socket creation failed");
-        exit(EXIT_FAILURE);
+        log_error(udp_cd->ctx->events_module, "[ERROR, UDP-search] couldn't create socket (%d)");
+        return NULL;
     }
 
     int broadcast = 1;
@@ -39,8 +39,8 @@ void *search_udp_servers(void *thread_data) {
     tv.tv_usec = 0;
 
     if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
-        perror("Error");
-        exit(-1);
+        log_error(udp_cd->ctx->events_module, "[ERROR, UDP-search] couldn't set receive timeout (%d)");
+        return NULL;
     }
 
     setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST,
@@ -61,7 +61,8 @@ void *search_udp_servers(void *thread_data) {
                       0, (const struct sockaddr *) &servaddr,
                       sizeof(servaddr));
     if (c < 0) {
-        printf("[ERROR, UDP-search]: %d\n", errno);
+        log_error(udp_cd->ctx->events_module, "[ERROR, UDP-search] (%d)");
+        return NULL;
     }
 
     int8_t received_smth = 0;

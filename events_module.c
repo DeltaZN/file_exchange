@@ -5,6 +5,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
 #include "events_module.h"
 #include "ui_module.h"
 
@@ -85,7 +86,7 @@ void del_download(events_module_data_t* em, transfer_progress_t *progress) {
     if (found) {
         em->download_list = remove_el(em->download_list, found);
         if (!em->download_list) {
-            printf("[EVENTS-MODULE] ERROR on del download");
+            put_action(em, "[EVENTS-MODULE] ERROR on del download");
         }
     } else {
         // Apparently, deleted by other thread
@@ -113,7 +114,7 @@ void del_upload(events_module_data_t* em, transfer_progress_t *progress) {
     if (found) {
         em->upload_list = remove_el(em->upload_list, found);
         if (!em->upload_list) {
-            printf("[EVENTS-MODULE] ERROR on del upload");
+            put_action(em, "[EVENTS-MODULE] ERROR on del upload");
         }
     } else {
         // Apparently, deleted by other thread
@@ -138,4 +139,16 @@ void put_action(events_module_data_t* em, const char *str) {
     em->actions_list = push(em->actions_list, logged_str);
     render_events_log(em->ui_data, 1);
     pthread_mutex_unlock(&em->actions_mutex);
+}
+
+void log_error(events_module_data_t *em, char *msg) {
+    char error[256] = {0};
+    sprintf(error, msg, errno);
+    put_action(em, error);
+}
+
+void log_action(events_module_data_t* em, char *msg, char *arg) {
+    char action[256] = {0};
+    sprintf(action, msg, arg);
+    put_action(em, action);
 }
