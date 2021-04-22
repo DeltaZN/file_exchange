@@ -14,9 +14,11 @@
 #include "tcp_client.h"
 
 void serve_client(int sockfd, file_triplet_t *triplet, app_context_t *ctx) {
-    int current_file = open(triplet->filename, O_RDONLY, 00666);
-    tcp_server_request_t request;
-    tcp_server_answer_t answer;
+    char relative_path[256] = {0};
+    sprintf(relative_path, "./%s", triplet->filepath);
+    int current_file = open(relative_path, O_RDONLY, 00666);
+    tcp_server_request_t request = {0};
+    tcp_server_answer_t answer = {0};
     transfer_progress_t progress = {0};
     transfer_progress_t *cur_progress = &progress;
     list_item_t *existing_upload = find_upload(ctx->events_module, cur_progress);

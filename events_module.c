@@ -147,7 +147,7 @@ void log_error(events_module_data_t *em, char *msg) {
     put_action(em, error);
 }
 
-void log_action(events_module_data_t* em, char *msg, char *arg) {
+void log_action(events_module_data_t* em, const char *msg, const char *arg) {
     char action[256] = {0};
     sprintf(action, msg, arg);
     put_action(em, action);

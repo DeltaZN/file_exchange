@@ -18,6 +18,8 @@ const static char* EXIT_CMD = "ext";
 
 void perform_download(int sockfd, file_triplet_dto_t triplet, app_context_t *ctx) {
     transfer_progress_t progress = {0};
+    tcp_server_request_t request = {0};
+    tcp_server_answer_t answer = {0};
     transfer_progress_t *cur_progress = &progress;
     progress.triplet = triplet;
     list_item_t *existing_download = find_download(ctx->events_module, &progress);
@@ -26,8 +28,6 @@ void perform_download(int sockfd, file_triplet_dto_t triplet, app_context_t *ctx
     } else {
         put_download(ctx->events_module, &progress);
     }
-    tcp_server_request_t request = {0};
-    tcp_server_answer_t answer = {0};
     int current_file = open(triplet.filename, O_WRONLY | O_CREAT, 00777);
     while (cur_progress->global * 4096 < triplet.filesize) {
         strncpy(request.cmd, GET_CMD, 3);

@@ -46,10 +46,7 @@ void display_cmd(app_context_t *ctx, const char* path) {
         }
         item = item->next;
     }
-    char *str = calloc(1, 256);
-    sprintf(str, "Could find file with name %s", path);
-    put_action(ctx->events_module, str);
-    free(str);
+    log_action(ctx->events_module, "Could find file %s", path);
 }
 
 void download_cmd(char* triplet, app_context_t *ctx) {

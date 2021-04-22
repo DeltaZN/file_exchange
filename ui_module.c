@@ -13,11 +13,12 @@ void focus_input(ui_data_t *data) {
     int32_t x, y;
     getyx(data->input_win, y, x);
     wmove(data->input_win, y, x);
+    wrefresh(data->input_win);
 }
 
 void render_transfer_headers(ui_data_t *data) {
     mvprintw(0, 1, "Downloading");
-    mvprintw(0, COLS / 2 + 2, "Uploading");
+    mvprintw(0, COLS / 2 + 1, "Uploading");
     refresh();
 }
 
@@ -150,7 +151,7 @@ void init_ui_data(ui_data_t *data) {
     int32_t input_start = row - 1;
 
     data->download_win = newwin(transfer_area_end - transfer_area_start, col / 2, transfer_area_start, 0);
-    data->upload_win = newwin(transfer_area_end - transfer_area_start, col / 2, transfer_area_start, col / 2 + 1);
+    data->upload_win = newwin(transfer_area_end - transfer_area_start, col / 2 + col % 2, transfer_area_start, col / 2);
     data->events_win = newwin(events_log_end - events_log_start, col, events_log_start, 0);
     data->input_win = newwin(1, col, input_start, 0);
 }
@@ -162,21 +163,20 @@ void destroy_ui_data(ui_data_t *data) {
     delwin(data->input_win);
 }
 
-void render_screen(ui_data_t *ui_data) {
+void render_all(ui_data_t *ui_data) {
     render_events_log(ui_data, 1);
+    render_transfer_area(ui_data, 1);
     render_input_field(ui_data);
 }
 
 void start_ui(ui_data_t *ui_data) {
-    render_transfer_headers(ui_data);
-    render_transfer_area(ui_data, 1);
-    render_events_log(ui_data, 1);
-    render_input_field(ui_data);
+    render_all(ui_data);
     int8_t exit = 0;
     while (!exit) {
         char *str = calloc(1, 256);
         usleep(1000 * 50);
-        render_screen(ui_data);
+        render_input_field(ui_data);
+        curs_set(1);
         wgetstr(ui_data->input_win, str);
         exit = handle_command(ui_data->ctx, str);
         free(str);

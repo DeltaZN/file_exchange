@@ -68,6 +68,7 @@ void *search_udp_servers(void *thread_data) {
     int8_t received_smth = 0;
 
     while (1) {
+        memset(buffer, 0, BUF_SIZE);
         n = recvfrom(sockfd, (char *) buffer, BUF_SIZE,
                      MSG_WAITALL, (struct sockaddr *) &cl_addr,
                      &len);
@@ -98,6 +99,7 @@ void *search_udp_servers(void *thread_data) {
 
     close(sockfd);
     free(triplet_str);
+    free(udp_cd);
 
     return NULL;
 }
